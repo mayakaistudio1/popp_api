@@ -370,4 +370,39 @@
 
                 await room.connect(tokenData.livekit_url, tokenData.livekit_client_token);
 
-                const stream = await navigator.mediaDevices.getUser
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                localAudioTrack = room.localParticipant.audioTracks[0]?.track;
+                
+                await fetch('/api/start', { method: 'POST' });
+                updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
+            } catch (error) {
+                console.error('Fehler:', error);
+                updateStatus('Verbindungsfehler. Bitte neu laden.', '');
+            }
+        });
+
+        document.getElementById('reloadBtn').addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateStatus(status, instruction) {
+            document.getElementById('statusText').textContent = status;
+            document.getElementById('instructionText').textContent = instruction;
+        }
+
+        // Завершение разговора через 2 минуты (демо)
+        setTimeout(() => {
+            if (room) {
+                fetch('/api/stop', { method: 'POST' });
+                room.disconnect();
+                showScreen('thankYouScreen');
+            }
+        }, 120000);
+    </script>
+</body>
+</html>
