@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const VOICE_ID  = "62bbb4b2-bb26-4727-bc87-cfb2bd4e0cc8";
     const CONTEXT_ID= "676aabcd-f345-47c1-ba6b-333f8f1578e1";
 
-    const { language = "german" } = req.body || {};
+    const { language = "de" } = req.body || {};
 
     const payload = {
       mode: "FULL",
