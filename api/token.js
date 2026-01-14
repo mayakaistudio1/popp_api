@@ -8,11 +8,11 @@ export default async function handler(req, res) {
     if (!apiKey) return res.status(500).json({ error: "Missing LIVEAVATAR_API_KEY in Vercel env" });
 
     // твои значения
-    const AVATAR_ID = "9650a758-1085-4d49-8bf3-f347565ec229";
-    const VOICE_ID  = "c23719ef-d070-42ee-9cd9-4b867c621671";
-    const CONTEXT_ID= "0af664ad-8b66-4f6e-91ab-3b3245d4d72d";
+    const AVATAR_ID = "073b60a9-89a8-45aa-8902-c358f64d2852";
+    const VOICE_ID  = "62bbb4b2-bb26-4727-bc87-cfb2bd4e0cc8";
+    const CONTEXT_ID= "676aabcd-f345-47c1-ba6b-333f8f1578e1";
 
-    const { language = "ru" } = req.body || {};
+    const { language = "german" } = req.body || {};
 
     const payload = {
       mode: "FULL",
