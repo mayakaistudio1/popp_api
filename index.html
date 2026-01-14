@@ -1,518 +1,373 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WOW-Agent - AI Dialog Widget</title>
+    <title>Maria - AI Dialog Widget</title>
     <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        
         :root {
-            --accent: #00B8D4;
-            --dark: #1A1A1A;
-            --dark-lighter: #2D2D2D;
-            --white: #FFFFFF;
-            --gray: rgba(255, 255, 255, 0.7);
-            --gray-light: rgba(255, 255, 255, 0.5);
-            --border-radius: 12px;
+            --accent: #00FF9D;
+            --dark: #000000;
+            --dark-lighter: #0F0F0F;
+            --white: #ffffff;
+            --gray: #B8B8B8;
+            --border-radius: 14px;
             --transition: all 0.3s ease;
         }
 
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--dark);
             color: var(--white);
             overflow: hidden;
             height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* --- ЭКРАН 1: ПРИВЕТСТВИЕ --- */
-        #welcomeScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 40px 20px; z-index: 1000;
+        .container {
+            width: 100%;
+            max-width: 720px;
+            padding: 20px;
+            text-align: center;
         }
-        #welcomeScreen.hidden { display: none; }
-        #welcomeScreen h1 { font-size: 48px; font-weight: 900; line-height: 1.2; margin-bottom: 10px; }
-        #welcomeScreen h1 .accent { color: var(--accent); }
-        #welcomeScreen p { font-size: 18px; color: var(--gray); max-width: 500px; margin-bottom: 40px; }
-        
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Приветственный экран */
+        #welcomeScreen h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        #welcomeScreen h1 .accent {
+            color: var(--accent);
+            text-shadow: 0 0 22px rgba(0,255,157,0.35);
+        }
+
+        #welcomeScreen p {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 32px;
+            max-width: 560px;
+        }
+
         #startBtn {
-            background: var(--accent); color: var(--dark); padding: 18px 50px;
-            border: none; border-radius: var(--border-radius); font-size: 18px; font-weight: 700;
-            cursor: pointer; transition: var(--transition);
+            background: var(--accent);
+            color: var(--dark);
+            border: none;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 0 22px rgba(0,255,157,0.35);
         }
-        #startBtn:hover { background: #00A3C0; transform: translateY(-2px); }
-        #startBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* --- ЭКРАН 2: ЗАГРУЗКА --- */
-        #loadingScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 1001;
+        #startBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 32px rgba(0,255,157,0.5);
         }
-        #loadingScreen.hidden { display: none; }
-        .spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 30px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- ЭКРАН 3: ДИАЛОГ --- */
+        #welcomeScreen small {
+            display: block;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        /* Экран разговора */
         #chatScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; flex-direction: column; z-index: 1002;
-        }
-        #chatScreen.hidden { display: none; }
-
-        #videoContainer {
-            flex: 1; position: relative; background: #000;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        #videoContainer video {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%;
+            height: 100vh;
+            position: relative;
         }
 
-        .chat-header {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        #statusBadge {
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
-            padding: 12px 20px; border-radius: var(--border-radius);
-            font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;
-            transition: all 0.3s;
-        }
-        
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #gray; }
-        
-        /* Состояния статуса */
-        #statusBadge.listening .status-dot { background: #00FF00; animation: pulse-dot 1.5s infinite; }
-        #statusBadge.speaking .status-dot { background: #FF0000; animation: pulse-dot 1.5s infinite; }
-        #statusBadge.speaking { border: 1px solid #FF0000; }
-
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        #timer {
-            background: rgba(0, 0, 0, 0.8); padding: 12px 20px;
-            border-radius: var(--border-radius); color: var(--accent);
-            font-weight: 600; font-family: monospace;
+        #statusOverlay {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15,15,15,0.9);
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--accent);
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 0 22px rgba(0,255,157,0.35);
+            z-index: 100;
         }
 
-        #closeBtn {
-            background: rgba(0, 0, 0, 0.8); border: none; color: var(--white);
-            width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer;
+        #statusText {
+            color: var(--accent);
         }
-        #closeBtn:hover { background: rgba(255, 0, 0, 0.5); }
 
-        #instructionBanner {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            background: var(--accent); color: var(--dark); padding: 12px 24px;
-            border-radius: var(--border-radius); font-weight: 600; z-index: 10;
-            box-shadow: 0 4px 15px rgba(0,184,212, 0.4);
-            transition: all 0.3s;
-            opacity: 0; pointer-events: none;
+        #instructionText {
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--gray);
         }
-        #instructionBanner.visible { opacity: 1; bottom: 40px; }
 
-        /* --- ЭКРАН 4: СПАСИБО (ОБНОВЛЕННЫЙ) --- */
+        /* Финальный экран */
         #thankYouScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
-            display: flex; align-items: center; justify-content: center;
-            overflow-y: auto; z-index: 1003; padding: 20px;
-        }
-        #thankYouScreen.hidden { display: none; }
-
-        .thank-you-card {
-            background: rgba(30, 30, 30, 0.95); 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px; padding: 40px; 
-            width: 100%; max-width: 600px; 
-            text-align: left;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            padding: 40px 20px;
         }
 
-        .ty-section { margin-bottom: 30px; }
-        .ty-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; color: var(--white); }
-        
-        /* Слайдер рейтинга */
-        .rating-labels { display: flex; justify-content: space-between; font-size: 14px; color: var(--gray); margin-bottom: 10px; }
-        .rating-labels span:last-child { color: var(--accent); font-weight: bold; }
-        
-        .custom-range {
-            -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px;
-            background: rgba(255,255,255,0.1); outline: none; transition: 0.2s;
-        }
-        .custom-range::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 24px; height: 24px; border-radius: 50%;
-            background: var(--accent); cursor: pointer;
-            box-shadow: 0 0 10px var(--accent);
+        #thankYouScreen h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            margin-bottom: 16px;
         }
 
-        /* Чипсы выбора */
-        .chips-container { display: flex; flex-wrap: wrap; gap: 10px; }
-        .choice-chip {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 20px; border-radius: 50px; color: var(--white); cursor: pointer;
-            font-size: 14px; transition: all 0.2s;
-        }
-        .choice-chip:hover, .choice-chip.active {
-            background: rgba(0, 184, 212, 0.2); border-color: var(--accent); color: var(--accent);
+        #thankYouScreen p {
+            color: var(--gray);
+            font-size: 16px;
+            margin-bottom: 32px;
+            max-width: 480px;
         }
 
-        /* Инпут чата */
-        .chat-input-wrapper {
-            position: relative; margin-top: 20px;
-            background: rgba(255,255,255,0.05); border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.1); padding: 5px 5px 5px 20px;
-            display: flex; align-items: center;
+        /* Выбор интереса */
+        .options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 32px;
         }
-        .chat-input-wrapper input {
-            flex: 1; background: transparent; border: none; color: white;
-            font-size: 16px; outline: none; padding: 10px 0;
-        }
-        .send-btn {
-            background: transparent; color: var(--accent); border: none;
-            padding: 10px 20px; cursor: pointer; font-weight: bold; font-size: 16px;
-            display: flex; align-items: center; gap: 5px;
-        }
-        .send-btn:hover { opacity: 0.8; }
-        
-        .restart-link {
-            display: block; text-align: center; margin-top: 20px;
-            color: var(--gray); text-decoration: none; font-size: 14px; cursor: pointer;
-        }
-        .restart-link:hover { color: var(--white); text-decoration: underline; }
 
+        .option {
+            background: var(--dark-lighter);
+            border: 2px solid rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+        }
+
+        .option.active {
+            background: rgba(0,255,157,0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Иконки контактов */
+        .icons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .icon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 32px;
+            background: var(--dark-lighter);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: var(--white);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .icon-btn.whatsapp:hover {
+            border-color: #25D366;
+        }
+
+        .icon-btn.telegram:hover {
+            border-color: #0088cc;
+        }
+
+        .icon-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+        }
+
+        .icon-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #reloadBtn {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 24px;
+        }
+
+        #reloadBtn:hover {
+            background: rgba(0,255,157,0.1);
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 640px) {
+            #welcomeScreen h1 { font-size: 28px; }
+            #welcomeScreen p { font-size: 16px; }
+            #thankYouScreen h2 { font-size: 24px; }
+            .icons { flex-direction: column; gap: 12px; }
+            .icon-btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
-
-    <div id="welcomeScreen">
-        <h1>ПОЧУВСТВУЙ<br><span class="accent">WOW-ЭФФЕКТ</span></h1>
-        <p>Пообщайся вживую</p>
-        <button id="startBtn">🎤 Начать разговор</button>
-        <small style="margin-top: 20px; color: #666;">Микрофон включится автоматически</small>
-    </div>
-
-    <div id="loadingScreen" class="hidden">
-        <div class="spinner"></div>
-        <p id="loadingText">Подключение к серверу...</p>
-    </div>
-
-    <div id="chatScreen" class="hidden">
-        <div id="videoContainer">
-            </div>
-
-        <div class="chat-header">
-            <div id="statusBadge">
-                <span class="status-dot"></span>
-                <span id="statusText">Подключение...</span>
-            </div>
-            <div id="timer">00:00</div>
-            <button id="closeBtn" title="Завершить">✕</button>
+    <div class="container">
+        <!-- Экран 1: Приветствие -->
+        <div id="welcomeScreen" class="screen active">
+            <h1>DEIN PERSÖNLICHER<br><span class="accent">MARIA COACH</span></h1>
+            <p>Stellen Sie Fragen zu meinem Trading-System, Möglichkeiten und dem nächsten Schritt.</p>
+            <button id="startBtn">🎤 Gespräch starten</button>
+            <small>Mikrofon wird automatisch aktiviert</small>
         </div>
 
-        <div id="instructionBanner">🎤 Говорите, вас слышно</div>
-    </div>
+        <!-- Экран 2: Разговор -->
+        <div id="chatScreen" class="screen">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div id="statusOverlay">
+                <div id="statusText">Vorbereitung...</div>
+                <div id="instructionText"></div>
+            </div>
+        </div>
 
-    <div id="thankYouScreen" class="hidden">
-        <div class="thank-you-card">
+        <!-- Экран 3: Спасибо + Форма -->
+        <div id="thankYouScreen" class="screen">
+            <h2>Vielen Dank für das Gespräch!</h2>
+            <p>Hinterlassen Sie Ihre Kontaktdaten oder kontaktieren Sie mich direkt:</p>
             
-            <div class="ty-section">
-                <div class="ty-title">Как тебе наше общение?</div>
-                <div class="rating-labels">
-                    <span>Обычно</span>
-                    <span>Это просто КОСМОС!</span>
-                </div>
-                <input type="range" min="1" max="100" value="80" class="custom-range">
+            <p style="font-size:14px;margin-bottom:12px;color:var(--gray);">Was trifft mehr zu?</p>
+            <div class="options">
+                <div class="option active" data-interest="Passives Einkommen">Passives Einkommen</div>
+                <div class="option" data-interest="Teamaufbau">Teamaufbau</div>
+                <div class="option" data-interest="Allgemeiner Überblick">Allgemeiner Überblick</div>
             </div>
 
-            <div class="ty-section">
-                <div class="ty-title">В какую сторону двигаемся?</div>
-                <div class="chips-container" id="choiceContainer">
-                    <div class="choice-chip">Хочу такого агента себе</div>
-                    <div class="choice-chip">Интересуют инвестиции</div>
-                    <div class="choice-chip">Нужно B2B решение</div>
-                    <div class="choice-chip">Свой вариант</div>
-                </div>
+            <div class="icons">
+                <a id="waLink" class="icon-btn whatsapp" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.52 3.48A11.91 11.91 0 0012.06 0C5.5 0 .14 5.37.14 11.94c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 005.79 1.48h.01c6.57 0 11.93-5.37 11.93-11.94a11.87 11.87 0 00-3.48-8.42z"/>
+                    </svg>
+                    <div class="icon-label">WhatsApp</div>
+                </a>
+                <a id="tgLink" class="icon-btn telegram" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9.04 15.45l-.38 5.35.55 0 .78-.24 1.06-.52l2.54-2.42 5.27 3.86c.97.53 1.66.25 1.90-.90L24 2.66c.3-1.36-.5-1.9-1.42-1.56L1.6 9.33c-1.33.53-1.31 1.28-.23 1.61l5.33 1.66L19.3 4.7c.6-.39 1.15-.18.7.21z"/>
+                    </svg>
+                    <div class="icon-label">Telegram</div>
+                </a>
             </div>
 
-            <div class="chat-input-wrapper">
-                <input type="text" id="finalInput" placeholder="Что вас интересует?">
-                <button class="send-btn" id="finalSendBtn">
-                    Отправить ➤
-                </button>
-            </div>
-
-            <a class="restart-link" id="reloadBtn">Начать заново</a>
+            <p style="margin-top:18px;font-size:12px;color:var(--gray);">Direkter Kontakt. Kein Spam.</p>
+            <button id="reloadBtn">Neu starten</button>
         </div>
     </div>
 
     <script>
-        // === Глобальное состояние ===
-        let state = {
-            sessionId: null,
-            sessionToken: null,
-            room: null,
-            localMicTrack: null,
-            videoEl: null,
-            audioEl: null,
-            countdown: null,
-            secondsLeft: 0,
-            isAvatarSpeaking: false
-        };
+        const whatsappNumber = '491748660007';
+        const telegramUser = 'cryptopopp';
+        let selectedInterest = 'Passives Einkommen';
+        let room, localAudioTrack, isAvatarSpeaking = false;
 
-        // === Элементы интерфейса ===
-        const ui = {
-            screens: {
-                welcome: document.getElementById('welcomeScreen'),
-                loading: document.getElementById('loadingScreen'),
-                chat: document.getElementById('chatScreen'),
-                thankYou: document.getElementById('thankYouScreen')
-            },
-            startBtn: document.getElementById('startBtn'),
-            closeBtn: document.getElementById('closeBtn'),
-            reloadBtn: document.getElementById('reloadBtn'),
-            statusBadge: document.getElementById('statusBadge'),
-            statusText: document.getElementById('statusText'),
-            timer: document.getElementById('timer'),
-            videoContainer: document.getElementById('videoContainer'),
-            instructionBanner: document.getElementById('instructionBanner'),
-            loadingText: document.getElementById('loadingText'),
-            // Новые элементы
-            finalSendBtn: document.getElementById('finalSendBtn'),
-            finalInput: document.getElementById('finalInput'),
-            choiceContainer: document.getElementById('choiceContainer')
-        };
-
-        // === Переключение экранов ===
-        function showScreen(name) {
-            Object.values(ui.screens).forEach(el => el.classList.add('hidden'));
-            ui.screens[name].classList.remove('hidden');
+        function updateContactLinks() {
+            const text = encodeURIComponent(`Hallo Alexander, ich interessiere mich für: ${selectedInterest}`);
+            document.getElementById('waLink').href = `https://wa.me/${whatsappNumber}?text=${text}`;
+            document.getElementById('tgLink').href = `https://t.me/${telegramUser}?text=${text}`;
         }
 
-        // === Обновление статуса UI ===
-        function updateStatus(status) {
-            ui.statusBadge.className = ''; 
-            
-            if (status === 'speaking') {
-                ui.statusBadge.classList.add('speaking');
-                ui.statusText.textContent = 'Аватар говорит';
-                ui.instructionBanner.textContent = '👂 Слушайте...';
-                ui.instructionBanner.classList.add('visible');
-                ui.instructionBanner.style.background = '#ef4444';
-            } else if (status === 'listening') {
-                ui.statusBadge.classList.add('listening');
-                ui.statusText.textContent = 'Слушает вас';
-                ui.instructionBanner.textContent = '🎤 Говорите сейчас!';
-                ui.instructionBanner.classList.add('visible');
-                ui.instructionBanner.style.background = '#00B8D4';
-            } else {
-                ui.statusText.textContent = status;
-                ui.instructionBanner.classList.remove('visible');
-            }
-        }
-
-        // === API Helper ===
-        async function postJSON(url, body) {
-            try {
-                const r = await fetch(url, {
-                    method: "POST",
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify(body || {})
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = document.querySelectorAll('.option');
+            options.forEach(o => {
+                o.addEventListener('click', () => {
+                    options.forEach(x => x.classList.remove('active'));
+                    o.classList.add('active');
+                    selectedInterest = o.dataset.interest;
+                    updateContactLinks();
                 });
-                const text = await r.text();
-                if (!r.ok) throw new Error(text);
-                return text ? JSON.parse(text) : {};
-            } catch (e) {
-                console.error("API Error:", e);
-                throw e;
-            }
-        }
+            });
+            updateContactLinks();
+        });
 
-        // === Таймер ===
-        function startTimer() {
-            clearInterval(state.countdown);
-            state.secondsLeft = 0;
-            const MAX_DURATION = 180; 
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            showScreen('chatScreen');
+            updateStatus('Verbindung wird hergestellt...', '');
             
-            state.countdown = setInterval(() => {
-                state.secondsLeft++;
-                const mins = Math.floor(state.secondsLeft / 60);
-                const secs = state.secondsLeft % 60;
-                ui.timer.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-                
-                if (state.secondsLeft >= MAX_DURATION) {
-                    stopSession();
-                }
-            }, 1000);
-        }
-
-        // === LiveKit Логика ===
-        async function connectLiveKit(payload) {
-            if (!window.LivekitClient) throw new Error("SDK LiveKit не загружен");
-
-            const lkUrl = payload?.livekit_url;
-            const lkToken = payload?.livekit_client_token;
-
-            if (!lkUrl || !lkToken) throw new Error("Нет данных для подключения к LiveKit");
-
-            const { Room, RoomEvent } = window.LivekitClient;
-
-            if (state.room) await state.room.disconnect();
-
-            state.room = new Room({
-                adaptiveStream: true,
-                dynacast: true,
-                autoSubscribe: true,
-            });
-
-            state.room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                if (track.kind === "video") {
-                    ui.videoContainer.innerHTML = ''; 
-                    const el = track.attach();
-                    state.videoEl = el;
-                    ui.videoContainer.appendChild(el);
-                }
-                if (track.kind === "audio") {
-                    const el = track.attach();
-                    state.audioEl = el;
-                    document.body.appendChild(el);
-                    el.play().catch(e => console.log("Audio autoplay block:", e));
-                }
-            });
-
-            state.room.on(RoomEvent.DataReceived, (payload) => {
-                try {
-                    const data = new TextDecoder().decode(payload);
-                    const event = JSON.parse(data);
-                    if (event.type === 'avatar_start_talking') {
-                        state.isAvatarSpeaking = true;
-                        updateStatus('speaking');
-                        if (state.localMicTrack) state.localMicTrack.mute();
-                    }
-                    if (event.type === 'avatar_stop_talking') {
-                        state.isAvatarSpeaking = false;
-                        updateStatus('listening');
-                        if (state.localMicTrack) state.localMicTrack.unmute();
-                    }
-                } catch (e) { console.error(e); }
-            });
-
-            state.room.on(RoomEvent.Disconnected, () => {
-                stopSession();
-            });
-
-            await state.room.connect(lkUrl, lkToken);
-            await state.room.startAudio();
-        }
-
-        // === Управление сессией ===
-        async function startSession() {
             try {
-                ui.startBtn.disabled = true;
-                showScreen('loading');
-                ui.loadingText.textContent = "Получение токена...";
-
-                const tokenData = await postJSON("/api/token", { language: "ru" });
-                state.sessionId = tokenData.session_id;
-                state.sessionToken = tokenData.session_token;
-
-                ui.loadingText.textContent = "Запуск аватара...";
-
-                const startData = await postJSON("/api/start", { 
-                    session_token: state.sessionToken 
-                });
+                const tokenRes = await fetch('/api/token', { method: 'POST' });
+                const tokenData = await tokenRes.json();
                 
-                const payload = startData?.data ?? startData;
+                room = new LivekitClient.Room();
+                
+                room.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
+                    const decoder = new TextDecoder();
+                    const message = decoder.decode(payload);
+                    
+                    try {
+                        const data = JSON.parse(message);
+                        if (data.type === 'avatar_start_talking') {
+                            isAvatarSpeaking = true;
+                            updateStatus('Maria spricht', '👂 Bitte hören Sie zu...');
+                            if (localAudioTrack) localAudioTrack.mute();
+                        } else if (data.type === 'avatar_stop_talking') {
+                            isAvatarSpeaking = false;
+                            updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
+                            if (localAudioTrack) localAudioTrack.unmute();
+                        }
+                    } catch (e) {}
+                });
 
-                ui.loadingText.textContent = "Подключение медиа...";
-                await connectLiveKit(payload);
+                room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                    if (track.kind === 'video') {
+                        track.attach(document.getElementById('remoteVideo'));
+                    }
+                });
 
-                try {
-                    state.localMicTrack = await window.LivekitClient.createLocalAudioTrack({
-                        echoCancellation: true,
-                        noiseSuppression: true
-                    });
-                    await state.room.localParticipant.publishTrack(state.localMicTrack);
-                } catch (e) {
-                    alert("Нужен доступ к микрофону!");
-                }
+                await room.connect(tokenData.livekit_url, tokenData.livekit_client_token);
 
-                showScreen('chat');
-                startTimer();
-                updateStatus('listening');
-
-            } catch (e) {
-                console.error(e);
-                alert("Ошибка: " + e.message);
-                showScreen('welcome');
-                ui.startBtn.disabled = false;
-            }
-        }
-
-        async function stopSession() {
-            showScreen('thankYou');
-            clearInterval(state.countdown);
-
-            if (state.localMicTrack) {
-                state.localMicTrack.stop();
-                state.localMicTrack = null;
-            }
-            if (state.room) {
-                state.room.disconnect();
-                state.room = null;
-            }
-            if (state.videoEl) state.videoEl.remove();
-            if (state.audioEl) state.audioEl.remove();
-
-            if (state.sessionId && state.sessionToken) {
-                try {
-                    await postJSON("/api/stop", { 
-                        session_id: state.sessionId, 
-                        session_token: state.sessionToken 
-                    });
-                } catch(e) { console.log("Stop API error", e); }
-            }
-            ui.startBtn.disabled = false;
-        }
-
-        // === Event Listeners ===
-        ui.startBtn.addEventListener('click', startSession);
-        ui.closeBtn.addEventListener('click', stopSession);
-        
-        ui.reloadBtn.addEventListener('click', () => {
-            window.location.reload();
-        });
-
-        // Логика кнопок выбора (Чипсов)
-        ui.choiceContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('choice-chip')) {
-                // Убираем активный класс у других
-                document.querySelectorAll('.choice-chip').forEach(c => c.classList.remove('active'));
-                // Ставим активный класс на нажатый
-                e.target.classList.add('active');
-                // Подставляем текст в инпут для удобства
-                ui.finalInput.value = e.target.textContent + "...";
-                ui.finalInput.focus();
-            }
-        });
-
-        ui.finalSendBtn.addEventListener('click', () => {
-            const val = ui.finalInput.value;
-            if(!val) return;
-            alert(`Спасибо! Мы сохранили ваш выбор: "${val}". (Это демо)`);
-        });
-
-        console.log("✨ WOW Widget Loaded");
-    </script>
-</body>
-</html>
+                const stream = await navigator.mediaDevices.getUser
