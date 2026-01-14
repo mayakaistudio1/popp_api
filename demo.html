@@ -56,17 +56,21 @@
         #welcomeScreen {
             background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
             padding: 40px 20px;
+            text-align: center;
         }
 
         #welcomeScreen h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 40px;
+            font-size: 48px;
             font-weight: 700;
-            margin-bottom: 16px;
+            margin: 0 auto 16px auto;
             line-height: 1.2;
+            max-width: 650px;
+            text-align: center;
         }
 
         #welcomeScreen h1 .accent {
+            display: block;
             color: var(--accent);
             text-shadow: 0 0 22px rgba(0,255,157,0.35);
         }
@@ -74,8 +78,9 @@
         #welcomeScreen p {
             font-size: 18px;
             color: var(--gray);
-            margin-bottom: 32px;
+            margin: 0 auto 32px auto;
             max-width: 560px;
+            text-align: center;
         }
 
         #startBtn {
@@ -293,7 +298,7 @@
         }
 
         @media (max-width: 640px) {
-            #welcomeScreen h1 { font-size: 28px; }
+            #welcomeScreen h1 { font-size: 32px; }
             #welcomeScreen p { font-size: 16px; }
             #thankYouScreen h2 { font-size: 24px; }
             .icons { flex-direction: column; gap: 12px; }
