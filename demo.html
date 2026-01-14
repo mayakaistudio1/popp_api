@@ -29,10 +29,6 @@
             justify-content: center;
         }
 
-        /* Базовая логика экранов */
-        .screen { display: none; }
-        .screen.active { display: flex !important; }
-
         .container {
             width: 100%;
             max-width: 720px;
@@ -40,13 +36,24 @@
             text-align: center;
         }
 
-        /* --- ЭКРАН 1: ПРИВЕТСТВИЕ --- */
-        #welcomeScreen {
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Приветственный экран */
         #welcomeScreen h1 {
             font-family: 'Montserrat', sans-serif;
             font-size: 40px;
@@ -80,14 +87,9 @@
             box-shadow: 0 0 22px rgba(0,255,157,0.35);
         }
 
-        #startBtn:hover:not(:disabled) {
+        #startBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 32px rgba(0,255,157,0.5);
-        }
-
-        #startBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         #welcomeScreen small {
@@ -97,50 +99,17 @@
             color: var(--gray);
         }
 
-        /* --- ЭКРАН 2: ЗАГРУЗКА --- */
-        #loadingScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-        }
-
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid rgba(0,255,157,0.2);
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 30px;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        #loadingText {
-            font-size: 16px;
-            color: var(--gray);
-        }
-
-        /* --- ЭКРАН 3: ДИАЛОГ --- */
+        /* Экран разговора */
         #chatScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            flex-direction: column;
-            z-index: 1002;
+            width: 100%;
+            height: 100vh;
+            position: relative;
         }
 
         #videoContainer {
-            flex: 1;
-            position: relative;
+            width: 100%;
+            height: 100%;
             background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
         }
 
         #videoContainer video {
@@ -174,31 +143,10 @@
             color: var(--gray);
         }
 
-        #closeBtn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(255,0,0,0.3);
-            border: 2px solid rgba(255,0,0,0.5);
-            color: #ff6b6b;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 101;
-            transition: var(--transition);
-        }
-
-        #closeBtn:hover {
-            background: rgba(255,0,0,0.6);
-            border-color: #ff0000;
-        }
-
         #timer {
             position: absolute;
             top: 24px;
-            right: 80px;
+            right: 24px;
             background: rgba(15,15,15,0.9);
             padding: 12px 20px;
             border-radius: var(--border-radius);
@@ -210,11 +158,30 @@
             z-index: 101;
         }
 
-        /* --- ЭКРАН 4: СПАСИБО --- */
+        #closeBtn {
+            position: absolute;
+            top: 24px;
+            right: 100px;
+            background: rgba(255,0,0,0.3);
+            border: 2px solid rgba(255,0,0,0.5);
+            color: #ff6b6b;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 101;
+            transition: all 0.3s;
+        }
+
+        #closeBtn:hover {
+            background: rgba(255,0,0,0.6);
+            border-color: #ff0000;
+        }
+
+        /* Финальный экран */
         #thankYouScreen {
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            padding: 40px 20px;
         }
 
         #thankYouScreen h2 {
@@ -287,14 +254,6 @@
             transform: translateY(-2px);
         }
 
-        .icon-btn.whatsapp:hover {
-            border-color: #25D366;
-        }
-
-        .icon-btn.telegram:hover {
-            border-color: #0088cc;
-        }
-
         .icon-btn svg {
             width: 32px;
             height: 32px;
@@ -334,7 +293,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Экран 1: Приветствие -->
         <div id="welcomeScreen" class="screen active">
             <h1>DEIN PERSÖNLICHER<br><span class="accent">MARIA COACH</span></h1>
             <p>Stellen Sie Fragen zu meinem Trading-System, Möglichkeiten und dem nächsten Schritt.</p>
@@ -342,24 +300,22 @@
             <small>Mikrofon wird automatisch aktiviert</small>
         </div>
 
-        <!-- Экран 2: Загрузка -->
         <div id="loadingScreen" class="screen">
-            <div class="spinner"></div>
+            <div style="width: 50px; height: 50px; border: 4px solid rgba(0,255,157,0.2); border-top: 4px solid #00FF9D; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px;"></div>
             <p id="loadingText">Verbindung zum Server...</p>
+            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
         </div>
 
-        <!-- Экран 3: Разговор -->
         <div id="chatScreen" class="screen">
             <div id="videoContainer"></div>
             <div id="timer">00:00</div>
+            <button id="closeBtn">✕</button>
             <div id="statusOverlay">
                 <div id="statusText">Vorbereitung...</div>
                 <div id="instructionText"></div>
             </div>
-            <button id="closeBtn">✕</button>
         </div>
 
-        <!-- Экран 4: Спасибо + Форма -->
         <div id="thankYouScreen" class="screen">
             <h2>Vielen Dank für das Gespräch!</h2>
             <p>Hinterlassen Sie Ihre Kontaktdaten oder kontaktieren Sie mich direkt:</p>
@@ -372,16 +328,12 @@
             </div>
 
             <div class="icons">
-                <a id="waLink" class="icon-btn whatsapp" target="_blank">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.52 3.48A11.91 11.91 0 0012.06 0C5.5 0 .14 5.37.14 11.94c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 005.79 1.48h.01c6.57 0 11.93-5.37 11.93-11.94a11.87 11.87 0 00-3.48-8.42z"/>
-                    </svg>
+                <a id="waLink" class="icon-btn" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.91 11.91 0 0012.06 0C5.5 0 .14 5.37.14 11.94c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 005.79 1.48h.01c6.57 0 11.93-5.37 11.93-11.94a11.87 11.87 0 00-3.48-8.42z"/></svg>
                     <div class="icon-label">WhatsApp</div>
                 </a>
-                <a id="tgLink" class="icon-btn telegram" target="_blank">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9.04 15.45l-.38 5.35.55 0 .78-.24 1.06-.52l2.54-2.42 5.27 3.86c.97.53 1.66.25 1.90-.90L24 2.66c.3-1.36-.5-1.9-1.42-1.56L1.6 9.33c-1.33.53-1.31 1.28-.23 1.61l5.33 1.66L19.3 4.7c.6-.39 1.15-.18.7.21z"/>
-                    </svg>
+                <a id="tgLink" class="icon-btn" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.04 15.45l-.38 5.35.55 0 .78-.24 1.06-.52l2.54-2.42 5.27 3.86c.97.53 1.66.25 1.90-.90L24 2.66c.3-1.36-.5-1.9-1.42-1.56L1.6 9.33c-1.33.53-1.31 1.28-.23 1.61l5.33 1.66L19.3 4.7c.6-.39 1.15-.18.7.21z"/></svg>
                     <div class="icon-label">Telegram</div>
                 </a>
             </div>
@@ -392,24 +344,12 @@
     </div>
 
     <script>
-        // ===== СОСТОЯНИЕ =====
-        const state = {
-            sessionId: null,
-            sessionToken: null,
-            room: null,
-            localMicTrack: null,
-            videoEl: null,
-            audioEl: null,
-            countdown: null,
-            secondsLeft: 0,
-            isAvatarSpeaking: false,
-            sessionTimer: null,
-            whatsappNumber: '491748660007',
-            telegramUser: 'cryptopopp',
-            selectedInterest: 'Passives Einkommen'
-        };
+        const whatsappNumber = '491748660007';
+        const telegramUser = 'cryptopopp';
+        let selectedInterest = 'Passives Einkommen';
+        let room, localAudioTrack, isAvatarSpeaking = false;
+        let state = { sessionId: null, sessionToken: null, countdown: null, secondsLeft: 0 };
 
-        // ===== UI ЭЛЕМЕНТЫ =====
         const ui = {
             screens: {
                 welcome: document.getElementById('welcomeScreen'),
@@ -418,8 +358,6 @@
                 thankYou: document.getElementById('thankYouScreen')
             },
             startBtn: document.getElementById('startBtn'),
-            closeBtn: document.getElementById('closeBtn'),
-            reloadBtn: document.getElementById('reloadBtn'),
             statusText: document.getElementById('statusText'),
             instructionText: document.getElementById('instructionText'),
             timer: document.getElementById('timer'),
@@ -427,12 +365,28 @@
             loadingText: document.getElementById('loadingText')
         };
 
-        // ===== ФУНКЦИИ =====
-        function showScreen(name) {
-            Object.values(ui.screens).forEach(el => el.classList.remove('active'));
-            if (ui.screens[name]) {
-                ui.screens[name].classList.add('active');
-            }
+        function updateContactLinks() {
+            const text = encodeURIComponent(`Hallo Alexander, ich interessiere mich für: ${selectedInterest}`);
+            document.getElementById('waLink').href = `https://wa.me/${whatsappNumber}?text=${text}`;
+            document.getElementById('tgLink').href = `https://t.me/${telegramUser}?text=${text}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = document.querySelectorAll('.option');
+            options.forEach(o => {
+                o.addEventListener('click', () => {
+                    options.forEach(x => x.classList.remove('active'));
+                    o.classList.add('active');
+                    selectedInterest = o.dataset.interest;
+                    updateContactLinks();
+                });
+            });
+            updateContactLinks();
+        });
+
+        function showScreen(screenId) {
+            Object.values(ui.screens).forEach(s => s.classList.remove('active'));
+            ui.screens[screenId].classList.add('active');
         }
 
         function updateStatus(status, instruction) {
@@ -440,34 +394,9 @@
             ui.instructionText.textContent = instruction;
         }
 
-        function updateContactLinks() {
-            const text = encodeURIComponent(`Hallo Alexander, ich interessiere mich für: ${state.selectedInterest}`);
-            document.getElementById('waLink').href = `https://wa.me/${state.whatsappNumber}?text=${text}`;
-            document.getElementById('tgLink').href = `https://t.me/${state.telegramUser}?text=${text}`;
-        }
-
-        async function postJSON(url, body) {
-            try {
-                const r = await fetch(url, {
-                    method: "POST",
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify(body || {})
-                });
-                const text = await r.text();
-                if (!r.ok) {
-                    throw new Error(`API Error ${r.status}: ${text}`);
-                }
-                return text ? JSON.parse(text) : {};
-            } catch (e) {
-                console.error("API Error:", e);
-                throw e;
-            }
-        }
-
         function startTimer() {
             clearInterval(state.countdown);
             state.secondsLeft = 0;
-            
             state.countdown = setInterval(() => {
                 state.secondsLeft++;
                 const mins = Math.floor(state.secondsLeft / 60);
@@ -476,192 +405,95 @@
             }, 1000);
         }
 
-        async function connectLiveKit(payload) {
-            if (!window.LivekitClient) {
-                throw new Error("SDK LiveKit nicht geladen");
-            }
-
-            const lkUrl = payload?.livekit_url;
-            const lkToken = payload?.livekit_client_token;
-
-            if (!lkUrl || !lkToken) {
-                throw new Error("Keine LiveKit-Daten vorhanden");
-            }
-
-            const { Room, RoomEvent } = window.LivekitClient;
-
-            if (state.room) await state.room.disconnect();
-
-            state.room = new Room({
-                adaptiveStream: true,
-                dynacast: true,
-                autoSubscribe: true,
-            });
-
-            // Обработка видео/аудио
-            state.room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                console.log(`🎬 Track erhalten: ${track.kind}`);
-                
-                if (track.kind === "video") {
-                    ui.videoContainer.innerHTML = '';
-                    const el = track.attach();
-                    state.videoEl = el;
-                    ui.videoContainer.appendChild(el);
-                    console.log('✅ Video hinzugefügt');
-                }
-
-                if (track.kind === "audio") {
-                    const el = track.attach();
-                    state.audioEl = el;
-                    document.body.appendChild(el);
-                    el.play().catch(e => console.log("Audio autoplay block:", e));
-                }
-            });
-
-            // Обработка событий статуса аватара
-            state.room.on(RoomEvent.DataReceived, (payload) => {
-                try {
-                    const data = new TextDecoder().decode(payload);
-                    const event = JSON.parse(data);
-                    console.log("📨 Event:", event.type);
-
-                    if (event.type === 'avatar_start_talking') {
-                        state.isAvatarSpeaking = true;
-                        updateStatus('Maria spricht', '👂 Bitte hören Sie zu...');
-                        if (state.localMicTrack) state.localMicTrack.mute();
-                    }
-
-                    if (event.type === 'avatar_stop_talking') {
-                        state.isAvatarSpeaking = false;
-                        updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
-                        if (state.localMicTrack) state.localMicTrack.unmute();
-                    }
-                } catch (e) {
-                    console.error("Data decode error", e);
-                }
-            });
-
-            state.room.on(RoomEvent.Disconnected, () => {
-                console.log('🔌 Verbindung getrennt');
-                stopSession();
-            });
-
-            await state.room.connect(lkUrl, lkToken);
-            console.log("✅ LiveKit verbunden");
-            
-            await state.room.startAudio();
+        async function postJSON(url, body) {
+            try {
+                const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) });
+                const text = await r.text();
+                if (!r.ok) throw new Error(text);
+                return text ? JSON.parse(text) : {};
+            } catch (e) { console.error("API Error:", e); throw e; }
         }
 
-        async function startSession() {
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            showScreen('loading');
+            ui.loadingText.textContent = "Token wird geladen...";
             try {
-                ui.startBtn.disabled = true;
-                showScreen('loading');
-                ui.loadingText.textContent = "Token wird geladen...";
-
-                // 1. Получаем токен сессии
                 const tokenData = await postJSON("/api/token", { language: "de" });
                 state.sessionId = tokenData.session_id;
                 state.sessionToken = tokenData.session_token;
 
                 ui.loadingText.textContent = "Avatar wird gestartet...";
-
-                // 2. Старт сессии и получение LiveKit данных
-                const startData = await postJSON("/api/start", { 
-                    session_token: state.sessionToken 
-                });
+                room = new LivekitClient.Room();
                 
+                room.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
+                    const decoder = new TextDecoder();
+                    const message = decoder.decode(payload);
+                    try {
+                        const data = JSON.parse(message);
+                        if (data.type === 'avatar_start_talking') {
+                            isAvatarSpeaking = true;
+                            updateStatus('Maria spricht', '👂 Bitte hören Sie zu...');
+                            if (localAudioTrack) localAudioTrack.mute();
+                        } else if (data.type === 'avatar_stop_talking') {
+                            isAvatarSpeaking = false;
+                            updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
+                            if (localAudioTrack) localAudioTrack.unmute();
+                        }
+                    } catch (e) {}
+                });
+
+                room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
+                    if (track.kind === 'video') {
+                        ui.videoContainer.innerHTML = '';
+                        const el = track.attach();
+                        ui.videoContainer.appendChild(el);
+                    }
+                    if (track.kind === 'audio') {
+                        const el = track.attach();
+                        document.body.appendChild(el);
+                        el.play().catch(e => console.log("Audio autoplay:", e));
+                    }
+                });
+
+                const startData = await postJSON("/api/start", { session_token: state.sessionToken });
                 const payload = startData?.data ?? startData;
 
-                // 3. Подключение к LiveKit
                 ui.loadingText.textContent = "Medien werden verbunden...";
-                await connectLiveKit(payload);
+                await room.connect(payload.livekit_url, payload.livekit_client_token);
 
-                // 4. Включение микрофона
-                try {
-                    state.localMicTrack = await window.LivekitClient.createLocalAudioTrack({
-                        echoCancellation: true,
-                        noiseSuppression: true
-                    });
-                    await state.room.localParticipant.publishTrack(state.localMicTrack);
-                    console.log("🎤 Mikrofon veröffentlicht");
-                } catch (e) {
-                    alert("Mikrofon erforderlich für das Gespräch!");
-                    throw e;
-                }
+                localAudioTrack = await LivekitClient.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
+                await room.localParticipant.publishTrack(localAudioTrack);
 
                 showScreen('chat');
                 startTimer();
                 updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
 
-                // Таймаут 5 минут (демо)
-                state.sessionTimer = setTimeout(() => {
-                    console.log('⏱️ Sitzung abgelaufen');
-                    stopSession();
+                setTimeout(() => {
+                    if (room) {
+                        fetch('/api/stop', { method: 'POST' });
+                        room.disconnect();
+                        showScreen('thankYou');
+                    }
                 }, 300000);
 
-            } catch (e) {
-                console.error('❌ Fehler:', e);
-                alert("Fehler: " + e.message);
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert("Fehler: " + error.message);
                 showScreen('welcome');
-                ui.startBtn.disabled = false;
             }
-        }
-
-        async function stopSession() {
-            clearTimeout(state.sessionTimer);
-            showScreen('thankYou');
-            clearInterval(state.countdown);
-
-            // Очистка медиа
-            if (state.localMicTrack) {
-                state.localMicTrack.stop();
-                state.localMicTrack = null;
-            }
-            if (state.room) {
-                state.room.disconnect();
-                state.room = null;
-            }
-            if (state.videoEl) state.videoEl.remove();
-            if (state.audioEl) state.audioEl.remove();
-
-            // API остановка
-            if (state.sessionId && state.sessionToken) {
-                try {
-                    await postJSON("/api/stop", { 
-                        session_id: state.sessionId, 
-                        session_token: state.sessionToken 
-                    });
-                } catch(e) { 
-                    console.log("Stop API error", e); 
-                }
-            }
-
-            ui.startBtn.disabled = false;
-        }
-
-        // ===== ИНИЦИАЛИЗАЦИЯ =====
-        document.addEventListener('DOMContentLoaded', () => {
-            // Интересы
-            const options = document.querySelectorAll('.option');
-            options.forEach(o => {
-                o.addEventListener('click', () => {
-                    options.forEach(x => x.classList.remove('active'));
-                    o.classList.add('active');
-                    state.selectedInterest = o.dataset.interest;
-                    updateContactLinks();
-                });
-            });
-            updateContactLinks();
         });
 
-        // ===== EVENT LISTENERS =====
-        ui.startBtn.addEventListener('click', startSession);
-        ui.closeBtn.addEventListener('click', stopSession);
-        ui.reloadBtn.addEventListener('click', () => {
-            window.location.reload();
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            if (room) {
+                fetch('/api/stop', { method: 'POST' });
+                room.disconnect();
+                showScreen('thankYou');
+            }
         });
 
-        console.log("✨ Maria Widget Loaded v2.0");
+        document.getElementById('reloadBtn').addEventListener('click', () => window.location.reload());
+
+        console.log("✨ Maria Widget Loaded");
     </script>
 </body>
 </html>
