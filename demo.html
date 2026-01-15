@@ -1,524 +1,578 @@
-```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maria - AI Dialog Widget</title>
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --accent: #00FF9D;
-            --dark: #000000;
-            --dark-lighter: #0F0F0F;
-            --white: #ffffff;
-            --gray: #B8B8B8;
-            --border-radius: 14px;
-            --transition: all 0.3s ease;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maria - AI Dialog Widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 
-        html, body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--dark);
-            color: var(--white);
-            overflow: hidden;
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .screen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            animation: fadeIn 0.4s ease;
-            z-index: 1000;
-        }
+    :root{
+      --accent:#00FF9D;
+      --dark:#000000;
+      --dark-lighter:#0F0F0F;
+      --white:#ffffff;
+      --gray:#B8B8B8;
+      --border-radius:14px;
+      --transition:all .3s ease;
+    }
 
-        .screen.active {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+    html,body{
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:var(--dark);
+      color:var(--white);
+      overflow:hidden;
+      height:100%;
+      width:100%;
+      margin:0;
+      padding:0;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .screen{
+      display:none;
+      position:fixed;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      animation:fadeIn .4s ease;
+      z-index:1000;
+    }
 
-        /* Приветственный экран */
-        #welcomeScreen {
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
-            padding: 40px 20px;
-            text-align: center;
-        }
+    .screen.active{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
 
-        #welcomeScreen h1 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 48px;
-            font-weight: 700;
-            margin: 0 auto 16px auto;
-            line-height: 1.2;
-            max-width: 650px;
-            text-align: center;
-        }
+    @keyframes fadeIn{
+      from{opacity:0; transform:translateY(10px);}
+      to{opacity:1; transform:translateY(0);}
+    }
 
-        #welcomeScreen h1 .accent {
-            display: block;
-            color: var(--accent);
-            text-shadow: 0 0 22px rgba(0,255,157,0.35);
-        }
+    /* WELCOME (оставлен как fallback, но не активный) */
+    #welcomeScreen{
+      background:linear-gradient(135deg,var(--dark) 0%,var(--dark-lighter) 100%);
+      padding:40px 20px;
+      text-align:center;
+    }
+    #welcomeScreen h1{
+      font-family:'Montserrat',sans-serif;
+      font-size:48px;
+      font-weight:700;
+      margin:0 auto 16px auto;
+      line-height:1.2;
+      max-width:650px;
+      text-align:center;
+    }
+    #welcomeScreen h1 .accent{
+      display:block;
+      color:var(--accent);
+      text-shadow:0 0 22px rgba(0,255,157,.35);
+    }
+    #welcomeScreen p{
+      font-size:18px;
+      color:var(--gray);
+      margin:0 auto 32px auto;
+      max-width:560px;
+      text-align:center;
+    }
+    #startBtn{
+      background:var(--accent);
+      color:var(--dark);
+      border:none;
+      padding:16px 48px;
+      font-size:18px;
+      font-weight:600;
+      border-radius:var(--border-radius);
+      cursor:pointer;
+      transition:var(--transition);
+      box-shadow:0 0 22px rgba(0,255,157,.35);
+    }
+    #startBtn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 32px rgba(0,255,157,.5);
+    }
+    #welcomeScreen small{
+      display:block;
+      margin-top:16px;
+      font-size:13px;
+      color:var(--gray);
+    }
 
-        #welcomeScreen p {
-            font-size: 18px;
-            color: var(--gray);
-            margin: 0 auto 32px auto;
-            max-width: 560px;
-            text-align: center;
-        }
+    /* LOADING */
+    #loadingScreen{ background:rgba(0,0,0,.95); }
 
-        #startBtn {
-            background: var(--accent);
-            color: var(--dark);
-            border: none;
-            padding: 16px 48px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 0 22px rgba(0,255,157,0.35);
-        }
+    /* CHAT */
+    #chatScreen{ background:#000; padding:0; }
+    #videoContainer{
+      width:100%;
+      height:100%;
+      background:#000;
+    }
+    #videoContainer video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
 
-        #startBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 32px rgba(0,255,157,0.5);
-        }
+    #statusOverlay{
+      position:absolute;
+      top:24px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(15,15,15,.9);
+      padding:12px 24px;
+      border-radius:var(--border-radius);
+      border:2px solid var(--accent);
+      font-size:16px;
+      font-weight:600;
+      box-shadow:0 0 22px rgba(0,255,157,.35);
+      z-index:100;
+      text-align:center;
+      max-width: calc(100% - 160px);
+    }
+    #statusText{ color:var(--accent); }
+    #instructionText{
+      margin-top:8px;
+      font-size:14px;
+      color:var(--gray);
+    }
 
-        #welcomeScreen small {
-            display: block;
-            margin-top: 16px;
-            font-size: 13px;
-            color: var(--gray);
-        }
+    #timer{
+      position:absolute;
+      top:24px;
+      right:24px;
+      background:rgba(15,15,15,.9);
+      padding:12px 20px;
+      border-radius:var(--border-radius);
+      border:2px solid var(--accent);
+      color:var(--accent);
+      font-weight:600;
+      font-family:monospace;
+      font-size:14px;
+      z-index:101;
+    }
 
-        /* Экран загрузки */
-        #loadingScreen {
-            background: rgba(0,0,0,0.95);
-        }
+    /* ✅ NEW: вместо крестика — “Beenden” (чтобы не дублировался X модалки) */
+    #closeBtn{
+      position:absolute;
+      top:24px;
+      left:24px;
+      right:auto;
 
-        /* Экран разговора */
-        #chatScreen {
-            background: #000;
-            padding: 0;
-        }
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
 
-        #videoContainer {
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
+      padding:10px 14px;
+      height:44px;
 
-        #videoContainer video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+      background:rgba(15,15,15,.9);
+      border:2px solid rgba(0,255,157,.55);
+      color:var(--accent);
 
-        #statusOverlay {
-            position: absolute;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(15,15,15,0.9);
-            padding: 12px 24px;
-            border-radius: var(--border-radius);
-            border: 2px solid var(--accent);
-            font-size: 16px;
-            font-weight: 600;
-            box-shadow: 0 0 22px rgba(0,255,157,0.35);
-            z-index: 100;
-        }
+      border-radius:999px;
+      cursor:pointer;
+      z-index:101;
+      transition:all .25s ease;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    #closeBtn:hover{
+      transform:translateY(-1px);
+      border-color:var(--accent);
+      box-shadow:0 0 22px rgba(0,255,157,.25);
+    }
+    #closeBtn .dot{
+      width:10px; height:10px;
+      border-radius:50%;
+      background:rgba(0,255,157,.9);
+      box-shadow:0 0 16px rgba(0,255,157,.35);
+      display:inline-block;
+    }
+    #closeBtn .label{
+      font-size:14px;
+      line-height:1;
+      opacity:.95;
+    }
 
-        #statusText {
-            color: var(--accent);
-        }
+    /* THANK YOU */
+    #thankYouScreen{
+      background:linear-gradient(135deg,var(--dark) 0%,var(--dark-lighter) 100%);
+      padding:40px 20px;
+      overflow-y:auto;
+    }
+    #thankYouScreen h2{
+      font-family:'Montserrat',sans-serif;
+      font-size:32px;
+      margin-bottom:16px;
+      text-align:center;
+    }
+    #thankYouScreen p{
+      color:var(--gray);
+      font-size:16px;
+      margin:0 auto 18px auto;
+      max-width:520px;
+      text-align:center;
+    }
 
-        #instructionText {
-            margin-top: 8px;
-            font-size: 14px;
-            color: var(--gray);
-        }
+    .options{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin:18px 0 28px 0;
+    }
+    .option{
+      background:var(--dark-lighter);
+      border:2px solid rgba(255,255,255,.1);
+      padding:12px 20px;
+      border-radius:var(--border-radius);
+      cursor:pointer;
+      transition:var(--transition);
+      font-size:14px;
+    }
+    .option:hover{ border-color:var(--accent); }
+    .option.active{
+      background:rgba(0,255,157,.1);
+      border-color:var(--accent);
+      color:var(--accent);
+    }
 
-        #timer {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(15,15,15,0.9);
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            border: 2px solid var(--accent);
-            color: var(--accent);
-            font-weight: 600;
-            font-family: monospace;
-            font-size: 14px;
-            z-index: 101;
-        }
+    .icons{
+      display:flex;
+      gap:20px;
+      justify-content:center;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+    .icon-btn{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      padding:20px 32px;
+      background:var(--dark-lighter);
+      border:2px solid rgba(255,255,255,.1);
+      border-radius:var(--border-radius);
+      text-decoration:none;
+      color:var(--white);
+      transition:var(--transition);
+      cursor:pointer;
+      min-width:180px;
+    }
+    .icon-btn:hover{
+      border-color:var(--accent);
+      transform:translateY(-2px);
+    }
+    .icon-btn svg{
+      width:32px;
+      height:32px;
+      fill:currentColor;
+    }
+    .icon-label{
+      font-size:14px;
+      font-weight:700;
+    }
 
-        #closeBtn {
-            position: absolute;
-            top: 24px;
-            right: 100px;
-            background: rgba(255,0,0,0.3);
-            border: 2px solid rgba(255,0,0,0.5);
-            color: #ff6b6b;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 101;
-            transition: all 0.3s;
-        }
+    /* ✅ NEW: кнопка “Zurück zur Homepage” */
+    #homeBtn{
+      background:transparent;
+      color:var(--accent);
+      border:2px solid var(--accent);
+      padding:12px 32px;
+      font-size:16px;
+      font-weight:700;
+      border-radius:var(--border-radius);
+      cursor:pointer;
+      transition:var(--transition);
+      margin:18px auto 0 auto;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
+    #homeBtn:hover{ background:rgba(0,255,157,.1); }
 
-        #closeBtn:hover {
-            background: rgba(255,0,0,0.6);
-            border-color: #ff0000;
-        }
-
-        /* Финальный экран */
-        #thankYouScreen {
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
-            padding: 40px 20px;
-            overflow-y: auto;
-        }
-
-        #thankYouScreen h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 32px;
-            margin-bottom: 16px;
-        }
-
-        #thankYouScreen p {
-            color: var(--gray);
-            font-size: 16px;
-            margin-bottom: 32px;
-            max-width: 480px;
-        }
-
-        /* Выбор интереса */
-        .options {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 32px;
-        }
-
-        .option {
-            background: var(--dark-lighter);
-            border: 2px solid rgba(255,255,255,0.1);
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 14px;
-        }
-
-        .option:hover {
-            border-color: var(--accent);
-        }
-
-        .option.active {
-            background: rgba(0,255,157,0.1);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* Иконки контактов */
-        .icons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 24px;
-        }
-
-        .icon-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            padding: 20px 32px;
-            background: var(--dark-lighter);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: var(--border-radius);
-            text-decoration: none;
-            color: var(--white);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .icon-btn:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .icon-btn svg {
-            width: 32px;
-            height: 32px;
-            fill: currentColor;
-        }
-
-        .icon-label {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        #reloadBtn {
-            background: transparent;
-            color: var(--accent);
-            border: 2px solid var(--accent);
-            padding: 12px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 24px;
-        }
-
-        #reloadBtn:hover {
-            background: rgba(0,255,157,0.1);
-        }
-
-        @media (max-width: 640px) {
-            #welcomeScreen h1 { font-size: 32px; }
-            #welcomeScreen p { font-size: 16px; }
-            #thankYouScreen h2 { font-size: 24px; }
-            .icons { flex-direction: column; gap: 12px; }
-            .icon-btn { width: 100%; }
-        }
-    </style>
+    @media (max-width: 640px){
+      #welcomeScreen h1{ font-size:32px; }
+      #welcomeScreen p{ font-size:16px; }
+      #thankYouScreen h2{ font-size:24px; }
+      .icon-btn{ width:100%; min-width:0; }
+      #statusOverlay{ max-width: calc(100% - 24px); }
+      #timer{ top:18px; right:14px; padding:10px 14px; }
+      #closeBtn{ top:18px; left:14px; }
+    }
+  </style>
 </head>
+
 <body>
-    <!-- ⚠️ Welcome screen оставлен в DOM (на случай ошибок), но НЕ активен -->
-    <div id="welcomeScreen" class="screen">
-        <h1>DEIN PERSÖNLICHER<br><span class="accent">MARIA COACH</span></h1>
-        <p>Stellen Sie Fragen zu meinem Trading-System, Möglichkeiten und dem nächsten Schritt.</p>
-        <button id="startBtn">🎤 Gespräch starten</button>
-        <small>Mikrofon wird automatisch aktiviert</small>
+  <!-- fallback (не активен) -->
+  <div id="welcomeScreen" class="screen">
+    <h1>DEIN PERSÖNLICHER<br><span class="accent">MARIA COACH</span></h1>
+    <p>Stellen Sie Fragen zu meinem Trading-System, Möglichkeiten und dem nächsten Schritt.</p>
+    <button id="startBtn">🎤 Gespräch starten</button>
+    <small>Mikrofon wird automatisch aktiviert</small>
+  </div>
+
+  <div id="loadingScreen" class="screen">
+    <div style="width:50px;height:50px;border:4px solid rgba(0,255,157,.2);border-top:4px solid #00FF9D;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:30px;"></div>
+    <p id="loadingText">Verbindung zum Server...</p>
+    <style>@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>
+  </div>
+
+  <div id="chatScreen" class="screen">
+    <div id="videoContainer"></div>
+
+    <div id="timer">00:00</div>
+
+    <!-- ✅ NEW look -->
+    <button id="closeBtn" type="button" aria-label="Beenden">
+      <span class="dot"></span>
+      <span class="label">Beenden</span>
+    </button>
+
+    <div id="statusOverlay">
+      <div id="statusText">Vorbereitung...</div>
+      <div id="instructionText"></div>
+    </div>
+  </div>
+
+  <div id="thankYouScreen" class="screen">
+    <h2>Vielen Dank für das Gespräch!</h2>
+    <p>Hinterlassen Sie Ihre Kontaktdaten oder kontaktieren Sie mich direkt:</p>
+
+    <p style="font-size:14px;margin:0 auto 12px auto;color:var(--gray);text-align:center;">Was trifft mehr zu?</p>
+
+    <div class="options">
+      <div class="option active" data-interest="Passives Einkommen">Passives Einkommen</div>
+      <div class="option" data-interest="Teamaufbau">Teamaufbau</div>
+      <div class="option" data-interest="Allgemeiner Überblick">Allgemeiner Überblick</div>
     </div>
 
-    <div id="loadingScreen" class="screen">
-        <div style="width: 50px; height: 50px; border: 4px solid rgba(0,255,157,0.2); border-top: 4px solid #00FF9D; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px;"></div>
-        <p id="loadingText">Verbindung zum Server...</p>
-        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    <div class="icons">
+      <a id="waLink" class="icon-btn" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.91 11.91 0 0012.06 0C5.5 0 .14 5.37.14 11.94c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 005.79 1.48h.01c6.57 0 11.93-5.37 11.93-11.94a11.87 11.87 0 00-3.48-8.42z"/></svg>
+        <div class="icon-label">WhatsApp</div>
+      </a>
+
+      <a id="tgLink" class="icon-btn" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.04 15.45l-.38 5.35.55 0 .78-.24 1.06-.52 2.54-2.42 5.27 3.86c.97.53 1.66.25 1.9-.9L24 2.66c.3-1.36-.5-1.9-1.42-1.56L1.6 9.33c-1.33.53-1.31 1.28-.23 1.61l5.33 1.66L19.3 4.7c.6-.39 1.15-.18.7.21z"/></svg>
+        <div class="icon-label">Telegram</div>
+      </a>
     </div>
 
-    <div id="chatScreen" class="screen">
-        <div id="videoContainer"></div>
-        <div id="timer">00:00</div>
-        <button id="closeBtn">✕</button>
-        <div id="statusOverlay">
-            <div id="statusText">Vorbereitung...</div>
-            <div id="instructionText"></div>
-        </div>
+    <p style="margin:6px auto 0 auto;font-size:12px;color:var(--gray);text-align:center;">Direkter Kontakt. Kein Spam.</p>
+
+    <!-- ✅ NEW: Zurück вместо Neu starten -->
+    <div style="text-align:center;">
+      <button id="homeBtn" type="button">← Zurück zur Homepage</button>
     </div>
+  </div>
 
-    <div id="thankYouScreen" class="screen">
-        <h2>Vielen Dank für das Gespräch!</h2>
-        <p>Hinterlassen Sie Ihre Kontaktdaten oder kontaktieren Sie mich direkt:</p>
-        
-        <p style="font-size:14px;margin-bottom:12px;color:var(--gray);">Was trifft mehr zu?</p>
-        <div class="options">
-            <div class="option active" data-interest="Passives Einkommen">Passives Einkommen</div>
-            <div class="option" data-interest="Teamaufbau">Teamaufbau</div>
-            <div class="option" data-interest="Allgemeiner Überblick">Allgemeiner Überblick</div>
-        </div>
+  <script>
+    // 👉 Поменяй сюда свой финальный домен лендинга (fallback если referrer пустой)
+    const DEFAULT_HOME_URL = "https://mayakaistudio1.github.io/alexpopp_test/";
 
-        <div class="icons">
-            <a id="waLink" class="icon-btn" target="_blank">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.91 11.91 0 0012.06 0C5.5 0 .14 5.37.14 11.94c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 005.79 1.48h.01c6.57 0 11.93-5.37 11.93-11.94a11.87 11.87 0 00-3.48-8.42z"/></svg>
-                <div class="icon-label">WhatsApp</div>
-            </a>
-            <a id="tgLink" class="icon-btn" target="_blank">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.04 15.45l-.38 5.35.55 0 .78-.24 1.06-.52l2.54-2.42 5.27 3.86c.97.53 1.66.25 1.90-.90L24 2.66c.3-1.36-.5-1.9-1.42-1.56L1.6 9.33c-1.33.53-1.31 1.28-.23 1.61l5.33 1.66L19.3 4.7c.6-.39 1.15-.18.7.21z"/></svg>
-                <div class="icon-label">Telegram</div>
-            </a>
-        </div>
+    // Если открыто из лендинга в iframe — referrer будет лендингом
+    function getHomeUrl() {
+      const ref = document.referrer || "";
+      if (!ref) return DEFAULT_HOME_URL;
+      // Если вдруг referrer = vercel, уходим на дефолт
+      if (ref.includes("popp-api.vercel.app")) return DEFAULT_HOME_URL;
+      return ref;
+    }
 
-        <p style="margin-top:18px;font-size:12px;color:var(--gray);">Direkter Kontakt. Kein Spam.</p>
-        <button id="reloadBtn">Neu starten</button>
-    </div>
+    const HOME_URL = getHomeUrl();
 
-    <script>
-        const whatsappNumber = '491748660007';
-        const telegramUser = 'cryptopopp';
-        let selectedInterest = 'Passives Einkommen';
-        let room, localAudioTrack, isAvatarSpeaking = false;
-        let state = { sessionId: null, sessionToken: null, countdown: null, secondsLeft: 0 };
+    const whatsappNumber = '491748660007';
+    const telegramUser   = 'cryptopopp';
+    let selectedInterest = 'Passives Einkommen';
 
-        const ui = {
-            screens: {
-                welcome: document.getElementById('welcomeScreen'),
-                loading: document.getElementById('loadingScreen'),
-                chat: document.getElementById('chatScreen'),
-                thankYou: document.getElementById('thankYouScreen')
-            },
-            startBtn: document.getElementById('startBtn'),
-            statusText: document.getElementById('statusText'),
-            instructionText: document.getElementById('instructionText'),
-            timer: document.getElementById('timer'),
-            videoContainer: document.getElementById('videoContainer'),
-            loadingText: document.getElementById('loadingText')
-        };
+    let room, localAudioTrack, isAvatarSpeaking = false;
+    let state = { sessionId:null, sessionToken:null, countdown:null, secondsLeft:0 };
 
-        function updateContactLinks() {
-            const text = encodeURIComponent(`Hallo Alexander, ich interessiere mich für: ${selectedInterest}`);
-            document.getElementById('waLink').href = `https://wa.me/${whatsappNumber}?text=${text}`;
-            document.getElementById('tgLink').href = `https://t.me/${telegramUser}?text=${text}`;
-        }
+    const ui = {
+      screens: {
+        welcome: document.getElementById('welcomeScreen'),
+        loading: document.getElementById('loadingScreen'),
+        chat: document.getElementById('chatScreen'),
+        thankYou: document.getElementById('thankYouScreen')
+      },
+      startBtn: document.getElementById('startBtn'),
+      statusText: document.getElementById('statusText'),
+      instructionText: document.getElementById('instructionText'),
+      timer: document.getElementById('timer'),
+      videoContainer: document.getElementById('videoContainer'),
+      loadingText: document.getElementById('loadingText'),
+      homeBtn: document.getElementById('homeBtn'),
+      closeBtn: document.getElementById('closeBtn')
+    };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const options = document.querySelectorAll('.option');
-            options.forEach(o => {
-                o.addEventListener('click', () => {
-                    options.forEach(x => x.classList.remove('active'));
-                    o.classList.add('active');
-                    selectedInterest = o.dataset.interest;
-                    updateContactLinks();
-                });
-            });
-            updateContactLinks();
+    function updateContactLinks() {
+      const text = encodeURIComponent(`Hallo Alexander, ich interessiere mich für: ${selectedInterest}`);
+      document.getElementById('waLink').href = `https://wa.me/${whatsappNumber}?text=${text}`;
+      document.getElementById('tgLink').href = `https://t.me/${telegramUser}?text=${text}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const options = document.querySelectorAll('.option');
+      options.forEach(o => {
+        o.addEventListener('click', () => {
+          options.forEach(x => x.classList.remove('active'));
+          o.classList.add('active');
+          selectedInterest = o.dataset.interest;
+          updateContactLinks();
         });
+      });
+      updateContactLinks();
+    });
 
-        function showScreen(screenId) {
-            Object.values(ui.screens).forEach(s => s.classList.remove('active'));
-            ui.screens[screenId].classList.add('active');
-        }
+    function showScreen(screenId) {
+      Object.values(ui.screens).forEach(s => s.classList.remove('active'));
+      ui.screens[screenId].classList.add('active');
+    }
 
-        function updateStatus(status, instruction) {
-            ui.statusText.textContent = status;
-            ui.instructionText.textContent = instruction;
-        }
+    function updateStatus(status, instruction) {
+      ui.statusText.textContent = status;
+      ui.instructionText.textContent = instruction || '';
+    }
 
-        function startTimer() {
-            clearInterval(state.countdown);
-            state.secondsLeft = 0;
-            state.countdown = setInterval(() => {
-                state.secondsLeft++;
-                const mins = Math.floor(state.secondsLeft / 60);
-                const secs = state.secondsLeft % 60;
-                ui.timer.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-            }, 1000);
-        }
+    function startTimer() {
+      clearInterval(state.countdown);
+      state.secondsLeft = 0;
+      state.countdown = setInterval(() => {
+        state.secondsLeft++;
+        const mins = Math.floor(state.secondsLeft / 60);
+        const secs = state.secondsLeft % 60;
+        ui.timer.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+      }, 1000);
+    }
 
-        async function postJSON(url, body) {
-            try {
-                const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) });
-                const text = await r.text();
-                if (!r.ok) throw new Error(text);
-                return text ? JSON.parse(text) : {};
-            } catch (e) { console.error("API Error:", e); throw e; }
-        }
+    async function postJSON(url, body) {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body || {})
+      });
+      const text = await r.text();
+      if (!r.ok) throw new Error(text || ("HTTP " + r.status));
+      return text ? JSON.parse(text) : {};
+    }
 
-        // ✅ Вынесено в функцию (чтобы запускать и по клику, и автоматически)
-        async function startConversation() {
-            showScreen('loading');
-            ui.loadingText.textContent = "Token wird geladen...";
-            try {
-                const tokenData = await postJSON("/api/token", { language: "de" });
-                state.sessionId = tokenData.session_id;
-                state.sessionToken = tokenData.session_token;
+    async function startConversation() {
+      showScreen('loading');
+      ui.loadingText.textContent = "Token wird geladen...";
 
-                ui.loadingText.textContent = "Avatar wird gestartet...";
-                room = new LivekitClient.Room();
-                
-                room.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
-                    const decoder = new TextDecoder();
-                    const message = decoder.decode(payload);
-                    try {
-                        const data = JSON.parse(message);
-                        if (data.type === 'avatar_start_talking') {
-                            isAvatarSpeaking = true;
-                            updateStatus('Maria spricht', '👂 Bitte hören Sie zu...');
-                            if (localAudioTrack) localAudioTrack.mute();
-                        } else if (data.type === 'avatar_stop_talking') {
-                            isAvatarSpeaking = false;
-                            updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
-                            if (localAudioTrack) localAudioTrack.unmute();
-                        }
-                    } catch (e) {}
-                });
+      try {
+        const tokenData = await postJSON("/api/token", { language: "de" });
+        state.sessionId = tokenData.session_id;
+        state.sessionToken = tokenData.session_token;
 
-                room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
-                    if (track.kind === 'video') {
-                        ui.videoContainer.innerHTML = '';
-                        const el = track.attach();
-                        ui.videoContainer.appendChild(el);
-                    }
-                    if (track.kind === 'audio') {
-                        const el = track.attach();
-                        document.body.appendChild(el);
-                        el.play().catch(e => console.log("Audio autoplay:", e));
-                    }
-                });
+        ui.loadingText.textContent = "Avatar wird gestartet...";
+        room = new LivekitClient.Room();
 
-                const startData = await postJSON("/api/start", { session_token: state.sessionToken });
-                const payload = startData?.data ?? startData;
-
-                ui.loadingText.textContent = "Medien werden verbunden...";
-                await room.connect(payload.livekit_url, payload.livekit_client_token);
-
-                localAudioTrack = await LivekitClient.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
-                await room.localParticipant.publishTrack(localAudioTrack);
-
-                showScreen('chat');
-                startTimer();
-                updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
-
-                setTimeout(() => {
-                    if (room) {
-                        fetch('/api/stop', { method: 'POST' });
-                        room.disconnect();
-                        showScreen('thankYou');
-                    }
-                }, 300000);
-
-            } catch (error) {
-                console.error('Fehler:', error);
-                alert("Fehler: " + error.message);
-                showScreen('welcome'); // fallback
+        room.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
+          const decoder = new TextDecoder();
+          const message = decoder.decode(payload);
+          try {
+            const data = JSON.parse(message);
+            if (data.type === 'avatar_start_talking') {
+              isAvatarSpeaking = true;
+              updateStatus('Maria spricht', '👂 Bitte hören Sie zu...');
+              if (localAudioTrack) localAudioTrack.mute();
+            } else if (data.type === 'avatar_stop_talking') {
+              isAvatarSpeaking = false;
+              updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
+              if (localAudioTrack) localAudioTrack.unmute();
             }
-        }
-
-        // Кнопка остаётся на всякий случай (fallback), но по умолчанию не нужна
-        document.getElementById('startBtn').addEventListener('click', startConversation);
-
-        document.getElementById('closeBtn').addEventListener('click', () => {
-            if (room) {
-                fetch('/api/stop', { method: 'POST' });
-                room.disconnect();
-                showScreen('thankYou');
-            }
+          } catch (e) {}
         });
 
-        document.getElementById('reloadBtn').addEventListener('click', () => window.location.reload());
-
-        console.log("✨ Maria Widget Loaded");
-
-        // ✅ Автозапуск сразу при открытии страницы (в iframe после клика на лендинге)
-        window.addEventListener('load', () => {
-            startConversation();
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
+          if (track.kind === 'video') {
+            ui.videoContainer.innerHTML = '';
+            const el = track.attach();
+            ui.videoContainer.appendChild(el);
+          }
+          if (track.kind === 'audio') {
+            const el = track.attach();
+            document.body.appendChild(el);
+            el.play().catch(() => {});
+          }
         });
-    </script>
+
+        const startData = await postJSON("/api/start", { session_token: state.sessionToken });
+        const payload = startData?.data ?? startData;
+
+        ui.loadingText.textContent = "Medien werden verbunden...";
+        await room.connect(payload.livekit_url, payload.livekit_client_token);
+
+        localAudioTrack = await LivekitClient.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
+        await room.localParticipant.publishTrack(localAudioTrack);
+
+        showScreen('chat');
+        startTimer();
+        updateStatus('Maria hört Ihnen zu', '🎤 Sprechen Sie jetzt!');
+
+        // авто-стоп через 5 минут
+        setTimeout(() => {
+          if (room) {
+            fetch('/api/stop', { method: 'POST' });
+            room.disconnect();
+            showScreen('thankYou');
+          }
+        }, 300000);
+
+      } catch (error) {
+        console.error('Fehler:', error);
+        alert("Fehler: " + (error?.message || error));
+        showScreen('welcome'); // fallback
+      }
+    }
+
+    // fallback-кнопка (если где-то браузер потребует клик)
+    ui.startBtn.addEventListener('click', startConversation);
+
+    // ✅ “Beenden” — завершает диалог и показывает thank you (без дубля X)
+    ui.closeBtn.addEventListener('click', () => {
+      try { fetch('/api/stop', { method: 'POST' }); } catch(e){}
+      if (room) room.disconnect();
+      showScreen('thankYou');
+    });
+
+    // ✅ “Zurück zur Homepage” — ведёт на главную (внутри iframe станет главной)
+    ui.homeBtn.addEventListener('click', () => {
+  // 1) максимально мягко завершаем локально
+  try { clearInterval(state.countdown); } catch(e) {}
+  try { fetch('/api/stop', { method: 'POST' }); } catch(e) {}
+  try { if (room) room.disconnect(); } catch(e) {}
+
+  // 2) показываем loading, чтобы не было "зависшего" экрана
+  try {
+    showScreen('loading');
+    ui.loadingText.textContent = "Zurück zur Homepage...";
+  } catch(e) {}
+
+  // 3) просим родителя закрыть модалку
+  try {
+    window.parent.postMessage({ type: 'closeWireframe' }, '*');
+  } catch (e) {}
+
+  // 4) фолбэк: если открыто НЕ в iframe — перейти на homepage
+  if (window === window.parent) {
+    window.location.href = HOME_URL || DEFAULT_HOME_URL;
+  }
+});
+
+
+
+    console.log("✨ Maria Widget Loaded");
+
+    // ✅ Автостарт
+    window.addEventListener('load', () => startConversation());
+  </script>
 </body>
 </html>
-```
