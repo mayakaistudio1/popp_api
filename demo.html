@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -307,7 +308,8 @@
     </style>
 </head>
 <body>
-    <div id="welcomeScreen" class="screen active">
+    <!-- ⚠️ Welcome screen оставлен в DOM (на случай ошибок), но НЕ активен -->
+    <div id="welcomeScreen" class="screen">
         <h1>DEIN PERSÖNLICHER<br><span class="accent">MARIA COACH</span></h1>
         <p>Stellen Sie Fragen zu meinem Trading-System, Möglichkeiten und dem nächsten Schritt.</p>
         <button id="startBtn">🎤 Gespräch starten</button>
@@ -427,7 +429,8 @@
             } catch (e) { console.error("API Error:", e); throw e; }
         }
 
-        document.getElementById('startBtn').addEventListener('click', async () => {
+        // ✅ Вынесено в функцию (чтобы запускать и по клику, и автоматически)
+        async function startConversation() {
             showScreen('loading');
             ui.loadingText.textContent = "Token wird geladen...";
             try {
@@ -492,9 +495,12 @@
             } catch (error) {
                 console.error('Fehler:', error);
                 alert("Fehler: " + error.message);
-                showScreen('welcome');
+                showScreen('welcome'); // fallback
             }
-        });
+        }
+
+        // Кнопка остаётся на всякий случай (fallback), но по умолчанию не нужна
+        document.getElementById('startBtn').addEventListener('click', startConversation);
 
         document.getElementById('closeBtn').addEventListener('click', () => {
             if (room) {
@@ -507,6 +513,12 @@
         document.getElementById('reloadBtn').addEventListener('click', () => window.location.reload());
 
         console.log("✨ Maria Widget Loaded");
+
+        // ✅ Автозапуск сразу при открытии страницы (в iframe после клика на лендинге)
+        window.addEventListener('load', () => {
+            startConversation();
+        });
     </script>
 </body>
 </html>
+```
